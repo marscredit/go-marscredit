@@ -1,0 +1,52 @@
+# fly.toml app configuration file generated for node1-marscredit on 2024-06-20T23:02:55-06:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'node1-marscredit'
+primary_region = 'sjc'
+
+[build]
+
+[env]
+  NODE_ID = 'node1'
+
+[[mounts]]
+  source = 'node1_data'
+  destination = '/data'
+
+[http_service]
+  internal_port = 443
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[services]]
+  protocol = 'tcp'
+  internal_port = 30303
+
+  [[services.ports]]
+    port = 30303
+    handlers = ['http']
+
+  [[services.ports]]
+    port = 30303
+    handlers = ['http']
+
+  [[services.ports]]
+    port = 30303
+
+[[services]]
+  protocol = 'tcp'
+  internal_port = 443
+
+  [[services.ports]]
+    port = 443
+    handlers = ['tls']
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1

@@ -55,12 +55,14 @@ else
 fi
 
 # Initialize Geth with the genesis file (only needed for first run)
-if [ ! -f "/data/geth/chaindata/CURRENT" ]; then
-    echo "Initializing Geth with genesis file"
-    geth init /app/genesis.json --datadir /data
-else
-    echo "chaindata directory exists and is not empty"
-fi
+# if [ ! -f "/data/geth/chaindata/CURRENT" ]; then
+#     echo "Initializing Geth with genesis file"
+#     geth init /app/genesis.json --datadir /data
+# else
+#     echo "chaindata directory exists and is not empty"
+# fi
+
+geth init /app/genesis.json --datadir /data
 
 # Start Geth and enable mining
 echo "Starting Geth and enabling mining"
@@ -69,15 +71,15 @@ geth --datadir /data \
     --syncmode "full" \
     --http \
     --http.addr "0.0.0.0" \
-    --http.port 10101 \
+    --http.port 30303 \
     --http.api personal,eth,net,web3,miner,admin \
     --http.vhosts=* \
     --http.corsdomain=* \
     --networkid 110110 \
     --ws \
     --ws.addr "0.0.0.0" \
-    --ws.port 10101 \
-    --port 10101 \
+    --ws.port 30303 \
+    --port 443 \
     --mine \
     --miner.threads=1 \
     --miner.etherbase 0xc1133A2B8E92a747eBF2A937bE3D79c29231f407 \
@@ -91,5 +93,7 @@ geth --datadir /data \
     --nodekey /data/geth/nodekey \
     --ethash.dagdir /data/.ethash &
 
-# Wait indefinitely so the script doesn't exit
-wait
+# Add a loop to keep the script running
+while true; do
+  sleep 60
+done

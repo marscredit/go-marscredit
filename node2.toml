@@ -1,0 +1,20 @@
+app = "node2-marscredit"
+
+[env]
+  NODE_ID = "node2"
+
+[[services]]
+  internal_port = 30303
+  protocol = "tcp"
+  ports = [
+    { port = 30303, handlers = ["http"] },
+    { port = 30303, handlers = ["ws"] },
+    { port = 30303, handlers = [] }
+  ]
+
+[[services]]
+  internal_port = 443
+  protocol = "tcp"
+  ports = [
+    { port = 443, handlers = ["tls"] }
+  ]
