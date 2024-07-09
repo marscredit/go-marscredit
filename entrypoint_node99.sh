@@ -66,7 +66,7 @@ sleep 10
 # Start Geth and enable mining
 echo "Starting Geth on node99 and enabling mining"
 exec geth --datadir /data \
-    --syncmode "full" \
+    --syncmode "fullarchived" \
     --http \
     --http.addr 0.0.0.0 \
     --http.port 8546 \
@@ -77,6 +77,13 @@ exec geth --datadir /data \
     --ws \
     --ws.addr 0.0.0.0 \
     --ws.port 8546 \
+    --rpc \
+    --rpcaddr 0.0.0.0 \
+    --rpcapi personal,eth,net,web3,miner,admin \
+    --rpccorsdomain "*" \
+    --rpcvhosts=* \
+    --rpcaddr node99-production.up.railway.app \
+    --rpcport 30304 \
     --port 30304 \
     --nat "any" \
     --mine \
