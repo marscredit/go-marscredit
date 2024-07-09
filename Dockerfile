@@ -39,6 +39,7 @@ COPY entrypoint_node2.sh /app/entrypoint_node2.sh
 COPY entrypoint_node3.sh /app/entrypoint_node3.sh
 COPY entrypoint_node4.sh /app/entrypoint_node4.sh
 COPY entrypoint_node99.sh /app/entrypoint_node99.sh
+COPY entrypoint_node222.sh /app/entrypoint_node222.sh
 COPY static-nodes.json /data/static-nodes.json
 COPY trusted-nodes.json /data/trusted-nodes.json
 COPY keystore/* /app/keystore
@@ -50,11 +51,12 @@ RUN chmod +x /app/entrypoint_node2.sh
 RUN chmod +x /app/entrypoint_node3.sh
 RUN chmod +x /app/entrypoint_node4.sh
 RUN chmod +x /app/entrypoint_node99.sh
+RUN chmod +x /app/entrypoint_node222.sh
 
 # Create app directory
 WORKDIR /app
 
-EXPOSE 443 8545 8546 30303 30304 30305 30905
+EXPOSE 443 8545 8546 30303 30304 30305
 
 # Use the entrypoint script
 CMD ["/bin/sh", "-c", "/app/entrypoint_${NODE_ID}.sh"]

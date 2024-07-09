@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "Starting Node 99"
+echo "Starting Node 222"
 
 # Function to handle shutdown
 shutdown() {
@@ -39,17 +39,17 @@ fi
 
 # Generate nodekey if not present
 echo "Checking for nodekey..."
-if [ ! -f "/app/nodekey99" ]; then
+if [ ! -f "/app/nodekey222" ]; then
     echo "Generating new nodekey..."
-    bootnode -genkey /app/nodekey99
+    bootnode -genkey /app/nodekey222
 else
-    echo "nodekey99 file exists."
+    echo "nodekey222 file exists."
 fi
 
 # Log the contents of the nodekey
-echo "Logging contents of /app/nodekey99 (if exists):"
-if [ -f /app/nodekey99 ]; then
-    ls -la /app/nodekey99
+echo "Logging contents of /app/nodekey222 (if exists):"
+if [ -f /app/nodekey222 ]; then
+    ls -la /app/nodekey222
 fi
 
 # Initialize Geth with the genesis file (only needed for first run)
@@ -64,7 +64,7 @@ fi
 sleep 10
 
 # Start Geth and enable mining
-echo "Starting Geth on node99 and enabling mining"
+echo "Starting Geth on node222 and enabling mining"
 exec geth --datadir /data \
     --syncmode "full" \
     --http \
@@ -81,13 +81,12 @@ exec geth --datadir /data \
     --nat "any" \
     --mine \
     --miner.threads=1 \
-    --miner.etherbase 0xD21602919e81e32A456195e9cE34215Af504535A \
+    --miner.etherbase 0xE3f7ED071aE416977226e94e562191cEa052405c \
     --bootnodes "enode://ca3639067a580a0f1db7412aeeef6d5d5e93606ed7f236a5343fe0d1115fb8c2bea2a22fa86e9794b544f886a4cb0de1afcbccf60960802bf00d81dab9553ec9@monorail.proxy.rlwy.net:26254,enode://7f2ee75a1c112735aaa43de1e5a6c4d7e07d03a5352b5782ed8e0c7cc046a8c8839ad093b09649e0b4a6ed8900211fb4438765c99d07bb00006ef080a1aa9ab6@viaduct.proxy.rlwy.net:30270,enode://98710174f4798dae1931e417944ac7a7fb3268d38ef8d3941c8fcc44fe178b118003d8b3d61d85af39c561235a1708f8dd61f8ba47df4c4a6b9156e272af2cfc@monorail.proxy.rlwy.net:29138" \
     --verbosity 6 \
     --maxpeers 100 \
     --cache 2048 \
     --nodiscover \
-    --nodekey /app/nodekey99 \
     --ethash.dagdir /data/.ethash &
     
 # Wait indefinitely so the script doesn't exit
