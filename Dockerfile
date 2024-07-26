@@ -29,32 +29,19 @@ RUN mkdir -p /data/geth/ethash && mkdir -p /data/.ethash && mkdir -p /data/geth/
 
 # Copy the genesis file and other necessary files
 COPY genesis.json /app/genesis.json
-COPY nodekey /data/geth/nodekey
-COPY nodekey2 /app/nodekey2
-COPY nodekey3 /app/nodekey3
-COPY nodekey4 /app/nodekey4
-COPY nodekey99 /app/nodekey99
-COPY entrypoint_node1.sh /app/entrypoint_node1.sh
-COPY entrypoint_node2.sh /app/entrypoint_node2.sh
-COPY entrypoint_node3.sh /app/entrypoint_node3.sh
-COPY entrypoint_node4.sh /app/entrypoint_node4.sh
-COPY entrypoint_node99.sh /app/entrypoint_node99.sh
+COPY entrypoint.sh /app/entrypoint.sh
 COPY static-nodes.json /data/static-nodes.json
 COPY trusted-nodes.json /data/trusted-nodes.json
 COPY keystore/* /app/keystore
 COPY passwordfile /app/passwordfile
 
 # Make the script executable
-RUN chmod +x /app/entrypoint_node1.sh
-RUN chmod +x /app/entrypoint_node2.sh
-RUN chmod +x /app/entrypoint_node3.sh
-RUN chmod +x /app/entrypoint_node4.sh
-RUN chmod +x /app/entrypoint_node99.sh
+RUN chmod +x /app/entrypoint.sh
 
 # Create app directory
 WORKDIR /app
 
-EXPOSE 443 8545 8546 30303 30304 30305 30905
+EXPOSE 443 8545 8546 30303 30304 30305
 
 # Use the entrypoint script
-CMD ["/bin/sh", "-c", "/app/entrypoint_${NODE_ID}.sh"]
+CMD ["/bin/sh", "-c", "/app/entrypoint.sh"]
