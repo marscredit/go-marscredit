@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "Starting Node 1"
+echo "Starting Node 4"
 
 # Function to handle shutdown
 shutdown() {
@@ -17,7 +17,6 @@ trap shutdown SIGTERM
 mkdir -p /app/geth/ethash
 mkdir -p /data/.ethash
 mkdir -p /data/geth/chaindata
-mkdir -p /app/keystore
 
 # Set permissions to ensure Geth can write to the directory
 chmod -R 755 /app
@@ -30,28 +29,27 @@ ls -la /app
 echo "---- Logging contents of /data:"
 ls -la /data
 
-echo "---- Logging contents of /app/keystore:"
-ls -la /app/keystore
-
-echo "---- Checking for specific key file:"
-KEY_FILE="/app/keystore/UTC--2024-06-12T21-51-26.975004000Z--c1133a2b8e92a747ebf2a937be3d79c29231f407"
-if [ -f "$KEY_FILE" ]; then
-    echo "Key file $KEY_FILE exists."
-else
-    echo "Key file $KEY_FILE does not exist."
-    exit 1
-fi
-
-# Explicitly log and check permissions of the keystore file
-ls -la $KEY_FILE
-cat $KEY_FILE
-
 echo "Logging contents of /data/geth/chaindata (if exists):"
 if [ -d /data/geth/chaindata ]; then
     ls -la /data/geth/chaindata
 else
     echo "chaindata directory does not exist, creating now"
     mkdir -p /data/geth/chaindata
+fi
+
+# Generate nodekey if not present
+echo "Checking for nodekey..."
+if [ ! -f "/app/nodekey4" ]; then
+    echo "Generating new nodekey..."
+    bootnode -genkey /app/nodekey4
+else
+    echo "nodekey4 file exists."
+fi
+
+# Log the contents of the nodekey
+echo "Logging contents of /app/nodekey3 (if exists):"
+if [ -f /app/nodekey4 ]; then
+    ls -la /app/nodekey4
 fi
 
 # Initialize Geth with the genesis file (only needed for first run)
@@ -62,13 +60,12 @@ else
     echo "Chaindata directory exists and is not empty."
 fi
 
-# echo "Chaindata directory is empty. Initializing Geth with genesis file."
-# geth init /app/genesis.json --datadir /data
+# Wait for private networking to initialize
+sleep 10
 
 # Start Geth and enable mining
-echo "Starting Geth and enabling mining"
-geth --datadir /data \
-    --keystore /app/keystore \
+echo "Starting Geth on node4 and enabling mining"
+exec geth --datadir /data \
     --syncmode "full" \
     --http \
     --http.addr "0.0.0.0" \
@@ -84,13 +81,13 @@ geth --datadir /data \
     --nat "any" \
     --mine \
     --miner.threads=1 \
-    --miner.etherbase YOUR_WALLET_ADDRESS_HERE_FOR_MINING_REWARDS \
-    --bootnodes="enode://bf93a274569cd009e4172c1a41b8bde1fb8d8e7cff1e5130707a0cf5be4ce0fc673c8a138ecb7705025ea4069da8c1d4b7ffc66e8666f7936aa432ce57693353@roundhouse.proxy.rlwy.net:50590,enode://ca3639067a580a0f1db7412aeeef6d5d5e93606ed7f236a5343fe0d1115fb8c2bea2a22fa86e9794b544f886a4cb0de1afcbccf60960802bf00d81dab9553ec9@monorail.proxy.rlwy.net:26254,enode://7f2ee75a1c112735aaa43de1e5a6c4d7e07d03a5352b5782ed8e0c7cc046a8c8839ad093b09649e0b4a6ed8900211fb4438765c99d07bb00006ef080a1aa9ab6@viaduct.proxy.rlwy.net:30270,enode://98710174f4798dae1931e417944ac7a7fb3268d38ef8d3941c8fcc44fe178b118003d8b3d61d85af39c561235a1708f8dd61f8ba47df4c4a6b9156e272af2cfc@monorail.proxy.rlwy.net:29138" \
+    --miner.etherbase 0xD21602919e81e32A456195e9cE34215Af504535A \
+    --bootnodes "enode://bf93a274569cd009e4172c1a41b8bde1fb8d8e7cff1e5130707a0cf5be4ce0fc673c8a138ecb7705025ea4069da8c1d4b7ffc66e8666f7936aa432ce57693353@roundhouse.proxy.rlwy.net:50590,enode://ca3639067a580a0f1db7412aeeef6d5d5e93606ed7f236a5343fe0d1115fb8c2bea2a22fa86e9794b544f886a4cb0de1afcbccf60960802bf00d81dab9553ec9@monorail.proxy.rlwy.net:26254, enode://7f2ee75a1c112735aaa43de1e5a6c4d7e07d03a5352b5782ed8e0c7cc046a8c8839ad093b09649e0b4a6ed8900211fb4438765c99d07bb00006ef080a1aa9ab6@viaduct.proxy.rlwy.net:30270" \
     --verbosity 6 \
     --maxpeers 50 \
     --cache 2048 \
-    --nodiscover \
+    --nodekey /app/nodekey4 \
     --ethash.dagdir /data/.ethash &
-
+    
 # Wait indefinitely so the script doesn't exit
 wait
