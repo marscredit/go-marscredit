@@ -1,5 +1,7 @@
 #!/bin/sh
 
+DATADIR="/data/geth"
+
 echo "Starting Node 4"
 
 # Function to handle shutdown
@@ -47,7 +49,7 @@ else
 fi
 
 # Log the contents of the nodekey
-echo "Logging contents of /app/nodekey3 (if exists):"
+echo "Logging contents of /app/nodekey4 (if exists):"
 if [ -f /app/nodekey4 ]; then
     ls -la /app/nodekey4
 fi
@@ -55,7 +57,7 @@ fi
 # Initialize Geth with the genesis file (only needed for first run)
 if [ -z "$(ls -A /data/geth/chaindata)" ]; then
     echo "Chaindata directory is empty. Initializing Geth with genesis file."
-    geth init /app/genesis.json --datadir /data
+    geth init /app/genesis.json --datadir "$DATADIR"
 else
     echo "Chaindata directory exists and is not empty."
 fi
@@ -65,7 +67,7 @@ sleep 10
 
 # Start Geth and enable mining
 echo "Starting Geth on node4 and enabling mining"
-exec geth --datadir /data \
+exec geth --datadir "$DATADIR" \
     --syncmode "full" \
     --http \
     --http.addr "0.0.0.0" \
