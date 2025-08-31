@@ -1,7 +1,5 @@
 #!/bin/sh
 
-DATADIR="/data/geth"
-
 echo "Starting Node 4"
 
 # Function to handle shutdown
@@ -18,7 +16,7 @@ trap shutdown SIGTERM
 
 mkdir -p /app/geth/ethash
 mkdir -p /data/.ethash
-mkdir -p /data/geth/chaindata
+mkdir -p /data/chaindata
 
 # Set permissions to ensure Geth can write to the directory
 chmod -R 755 /app
@@ -31,12 +29,12 @@ ls -la /app
 echo "---- Logging contents of /data:"
 ls -la /data
 
-echo "Logging contents of /data/geth/chaindata (if exists):"
-if [ -d /data/geth/chaindata ]; then
-    ls -la /data/geth/chaindata
+echo "Logging contents of /data/chaindata (if exists):"
+if [ -d /data/chaindata ]; then
+    ls -la /data/chaindata
 else
     echo "chaindata directory does not exist, creating now"
-    mkdir -p /data/geth/chaindata
+    mkdir -p /data/chaindata
 fi
 
 # Generate nodekey if not present
@@ -55,9 +53,9 @@ if [ -f /app/nodekey4 ]; then
 fi
 
 # Initialize Geth with the genesis file (only needed for first run)
-if [ -z "$(ls -A /data/geth/chaindata)" ]; then
+if [ -z "$(ls -A /data/chaindata)" ]; then
     echo "Chaindata directory is empty. Initializing Geth with genesis file."
-    geth init /app/genesis.json --datadir "$DATADIR"
+    geth init /app/genesis.json --datadir /data
 else
     echo "Chaindata directory exists and is not empty."
 fi
@@ -67,7 +65,7 @@ sleep 10
 
 # Start Geth and enable mining
 echo "Starting Geth on node4 and enabling mining"
-exec geth --datadir "$DATADIR" \
+exec geth --datadir /data \
     --syncmode "full" \
     --http \
     --http.addr "0.0.0.0" \
