@@ -2,6 +2,7 @@
 
 echo "Starting Node 4"
 
+
 # Function to handle shutdown
 shutdown() {
     echo "Shutting down Geth gracefully..."
