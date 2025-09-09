@@ -76,7 +76,7 @@ exec geth --datadir /data \
     --networkid 110110 \
     --ws \
     --ws.addr 0.0.0.0 \
-    --ws.port 8546 \
+    --ws.port 8547 \
     --port 30304 \
     --nat "any" \
     --mine \
@@ -86,7 +86,6 @@ exec geth --datadir /data \
     --verbosity 6 \
     --maxpeers 100 \
     --cache 2048 \
-    --nodiscover \
     --nodekey /app/nodekey99 \
     --ethash.dagdir /data/.ethash &
     
