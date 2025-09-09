@@ -29,7 +29,7 @@ RUN mkdir -p /data/geth/ethash && mkdir -p /data/.ethash && mkdir -p /data/geth/
 
 # Copy the genesis file and other necessary files
 COPY genesis.json /app/genesis.json
-COPY nodekey1 /app/nodekey99
+COPY nodekey99 /app/nodekey99
 COPY entrypoint_node99.sh /app/entrypoint_node99.sh
 COPY static-nodes.json /data/static-nodes.json
 COPY trusted-nodes.json /data/trusted-nodes.json
