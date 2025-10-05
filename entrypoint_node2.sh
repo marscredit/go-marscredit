@@ -1,7 +1,5 @@
 #!/bin/sh
 
-DATADIR="/data/geth"
-
 echo "Starting Node 2"
 
 # Function to handle shutdown
