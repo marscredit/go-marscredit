@@ -82,7 +82,7 @@ exec geth --datadir /data \
     --mine \
     --miner.threads=1 \
     --miner.etherbase 0xD21602919e81e32A456195e9cE34215Af504535A \
-    --bootnodes "enode://7f2ee75a1c112735aaa43de1e5a6c4d7e07d03a5352b5782ed8e0c7cc046a8c8839ad093b09649e0b4a6ed8900211fb4438765c99d07bb00006ef080a1aa9ab6@viaduct.proxy.rlwy.net:30270" \
+    --bootnodes "enode://7f2ee75a1c112735aaa43de1e5a6c4d7e07d03a5352b5782ed8e0c7cc046a8c8839ad093b09649e0b4a6ed8900211fb4438765c99d07bb00006ef080a1aa9ab6@node3.railway.internal:30304" \
     --verbosity 6 \
     --maxpeers 50 \
     --cache 2048 \
