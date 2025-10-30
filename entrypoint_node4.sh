@@ -38,20 +38,10 @@ else
     mkdir -p /data/chaindata
 fi
 
-# Generate nodekey if not present
-echo "Checking for nodekey..."
-if [ ! -f "/app/nodekey4" ]; then
-    echo "Generating new nodekey..."
-    bootnode -genkey /app/nodekey4
-else
-    echo "nodekey4 file exists."
-fi
-
-# Log the contents of the nodekey
-echo "Logging contents of /app/nodekey4 (if exists):"
-if [ -f /app/nodekey4 ]; then
-    ls -la /app/nodekey4
-fi
+# Generate unique nodekey on EVERY startup (not a bootnode, doesn't need persistence)
+echo "Generating fresh unique nodekey for this instance..."
+bootnode -genkey /tmp/nodekey_$$
+echo "Generated unique nodekey with PID $$"
 
 # Initialize Geth with the genesis file (only needed for first run)
 if [ -z "$(ls -A /data/chaindata)" ]; then
@@ -87,7 +77,7 @@ exec geth --datadir /data \
     --verbosity 6 \
     --maxpeers 50 \
     --cache 2048 \
-    --nodekey /app/nodekey4 \
+    --nodekey /tmp/nodekey_$$ \
     --ethash.dagdir /data/.ethash &
     
 # Wait indefinitely so the script doesn't exit
