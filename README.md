@@ -184,6 +184,69 @@ Do not forget `--http.addr 0.0.0.0`, if you want to access RPC from other contai
 and/or hosts. By default, `geth` binds to the local interface and RPC endpoints are not
 accessible from the outside.
 
+### Running Mars Credit Mining Nodes with Docker
+
+To run a Mars Credit mining node locally that connects to the existing network:
+
+**Prerequisites:**
+- Install Docker Desktop
+- Clone this repository
+- Build the Docker image: `docker build -t mars-geth .`
+
+**Run a single mining node:**
+```shell
+docker run -d -p 8546:8546 -p 30304:30304 \
+  -v $(pwd)/entrypoint_node4.sh:/app/entrypoint_node4.sh \
+  -e NODE_ID=node4 \
+  --name mars-node4 \
+  mars-geth
+```
+
+**Run multiple mining nodes on the same machine:**
+
+Each node needs unique ports. Node4 auto-generates a unique nodekey on each startup, so you can run multiple instances:
+
+```shell
+# Instance 1
+docker run -d -p 8546:8546 -p 30304:30304 \
+  -v $(pwd)/entrypoint_node4.sh:/app/entrypoint_node4.sh \
+  -e NODE_ID=node4 --name mars-node4 mars-geth
+
+# Instance 2
+docker run -d -p 8547:8546 -p 30305:30304 \
+  -v $(pwd)/entrypoint_node4.sh:/app/entrypoint_node4.sh \
+  -e NODE_ID=node4 --name mars-node5 mars-geth
+
+# Instance 3
+docker run -d -p 8548:8546 -p 30306:30304 \
+  -v $(pwd)/entrypoint_node4.sh:/app/entrypoint_node4.sh \
+  -e NODE_ID=node4 --name mars-node6 mars-geth
+```
+
+**Manage running nodes:**
+```shell
+# View logs
+docker logs -f mars-node4
+
+# Stop a node
+docker stop mars-node4
+
+# Start a node
+docker start mars-node4
+
+# Remove a node
+docker rm -f mars-node4
+```
+
+**Change mining reward address:**
+
+Edit `entrypoint_node4.sh` and change the `--miner.etherbase` flag to your Ethereum address:
+```bash
+--miner.etherbase 0xYOUR_ADDRESS_HERE \
+```
+
+**Recommended:** On a MacBook Air or similar laptop, run 3-4 mining nodes for optimal performance without thermal throttling.
+
 ### Programmatically interfacing `geth` nodes
 
 As a developer, sooner rather than later you'll want to start interacting with `geth` and the
