@@ -5,8 +5,8 @@ echo "Starting Node 99"
 # Function to handle shutdown
 shutdown() {
     echo "Shutting down Geth gracefully..."
-    pkill -SIGTERM geth
-    wait $!
+    kill -TERM "$GETH_PID" 2>/dev/null
+    wait "$GETH_PID"
     echo "Geth has been shut down."
     exit 0
 }
@@ -53,7 +53,7 @@ if [ -f /app/nodekey99 ]; then
 fi
 
 # Initialize Geth with the genesis file (only needed for first run)
-if [ -z "$(ls -A /data/chaindata)" ]; then
+if [ -z "$(ls -A /data/geth/chaindata)" ]; then
     echo "Chaindata directory is empty. Initializing Geth with genesis file."
     geth init /app/genesis.json --datadir /data
 else
@@ -63,9 +63,9 @@ fi
 # Wait for private networking to initialize
 sleep 10
 
-# Start Geth and enable mining
-echo "Starting Geth on node99 and enabling mining"
-exec geth --datadir /data \
+# Start Geth (mining OFF: node99 must never mine its own chain)
+echo "Starting Geth on node99 (mining disabled)"
+geth --datadir /data \
     --syncmode "full" \
     --http \
     --http.addr 0.0.0.0 \
@@ -79,15 +79,13 @@ exec geth --datadir /data \
     --ws.port 8547 \
     --port 30304 \
     --nat "any" \
-    --mine \
-    --miner.threads=1 \
-    --miner.etherbase 0xD21602919e81e32A456195e9cE34215Af504535A \
     --bootnodes "enode://bf93a274569cd009e4172c1a41b8bde1fb8d8e7cff1e5130707a0cf5be4ce0fc673c8a138ecb7705025ea4069da8c1d4b7ffc66e8666f7936aa432ce57693353@node2.railway.internal:30304,enode://7f2ee75a1c112735aaa43de1e5a6c4d7e07d03a5352b5782ed8e0c7cc046a8c8839ad093b09649e0b4a6ed8900211fb4438765c99d07bb00006ef080a1aa9ab6@node3.railway.internal:30304" \
-    --verbosity 6 \
+    --verbosity 3 \
     --maxpeers 100 \
     --cache 2048 \
     --nodekey /app/nodekey99 \
     --ethash.dagdir /data/.ethash &
-    
-# Wait indefinitely so the script doesn't exit
-wait
+GETH_PID=$!
+
+# Wait for geth; the SIGTERM trap waits for geth to exit cleanly
+wait "$GETH_PID"
