@@ -63,7 +63,7 @@ fi
 # Wait for private networking to initialize
 sleep 10
 
-# Start Geth and enable mining
+# Start Geth (mining OFF for recovery)
 echo "Starting Geth on node3 and enabling mining"
 exec geth --datadir /data \
     --syncmode "full" \
@@ -79,11 +79,9 @@ exec geth --datadir /data \
     --ws.port 8546 \
     --port 30304 \
     --nat "any" \
-    --mine \
-    --miner.threads=1 \
     --miner.etherbase 0xD21602919e81e32A456195e9cE34215Af504535A \
     --bootnodes "enode://bf93a274569cd009e4172c1a41b8bde1fb8d8e7cff1e5130707a0cf5be4ce0fc673c8a138ecb7705025ea4069da8c1d4b7ffc66e8666f7936aa432ce57693353@node2.railway.internal:30304" \
-    --verbosity 6 \
+    --verbosity 3 \
     --maxpeers 50 \
     --cache 2048 \
     --nodekey /app/nodekey3 \
