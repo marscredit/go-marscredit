@@ -12,7 +12,7 @@ shutdown() {
 }
 
 # Trap SIGTERM signal (sent by Railway when stopping the container)
-trap shutdown SIGTERM
+trap shutdown TERM INT
 
 mkdir -p /app/geth/ethash
 mkdir -p /data/.ethash
@@ -70,7 +70,7 @@ geth --datadir /data \
     --http \
     --http.addr 0.0.0.0 \
     --http.port 8546 \
-    --http.api personal,eth,net,web3,miner,admin \
+    --http.api eth,net,web3,miner \
     --http.vhosts=* \
     --http.corsdomain=* \
     --networkid 110110 \
