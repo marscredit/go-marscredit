@@ -5,14 +5,14 @@ echo "Starting Node 2"
 # Function to handle shutdown
 shutdown() {
     echo "Shutting down Geth gracefully..."
-    pkill -SIGTERM geth
-    wait $!
+    kill -TERM "$GETH_PID" 2>/dev/null
+    wait "$GETH_PID"
     echo "Geth has been shut down."
     exit 0
 }
 
-# Trap SIGTERM signal (sent by Railway when stopping the container)
-trap shutdown SIGTERM
+# Trap SIGTERM/SIGINT (sent by Railway when stopping the container)
+trap shutdown TERM INT
 
 mkdir -p /app/geth/ethash
 mkdir -p /data/.ethash
@@ -63,9 +63,9 @@ fi
 # Wait for private networking to initialize
 sleep 10
 
-# Start Geth and enable mining
-echo "Starting Geth on node2 and enabling mining"
-exec geth --datadir /data \
+# Start Geth (mining OFF: node2 must not mine its own chain)
+echo "Starting Geth on node2 (mining disabled)"
+geth --datadir /data \
     --syncmode "full" \
     --http \
     --http.addr "0.0.0.0" \
@@ -79,15 +79,13 @@ exec geth --datadir /data \
     --ws.port 8546 \
     --port 30304 \
     --nat "any" \
-    --mine \
-    --miner.threads=1 \
-    --miner.etherbase 0xD21602919e81e32A456195e9cE34215Af504535A \
-    --bootnodes "enode://7f2ee75a1c112735aaa43de1e5a6c4d7e07d03a5352b5782ed8e0c7cc046a8c8839ad093b09649e0b4a6ed8900211fb4438765c99d07bb00006ef080a1aa9ab6@node3.railway.internal:30304" \
-    --verbosity 6 \
+    --bootnodes "enode://7f2ee75a1c112735aaa43de1e5a6c4d7e07d03a5352b5782ed8e0c7cc046a8c8839ad093b09649e0b4a6ed8900211fb4438765c99d07bb00006ef080a1aa9ab6@node3.railway.internal:30304,enode://478d4dd8e56a6419d32a7f1166983566bf5c184d1fd97036bca04a2f8e5a6e7546492e38ebf16fbdb0c838c9d127ee70b5de6a7e1cdc5d337adc616f91baf98f@node99.railway.internal:30304" \
+    --verbosity 3 \
     --maxpeers 50 \
     --cache 2048 \
     --nodekey /app/nodekey2 \
     --ethash.dagdir /data/.ethash &
-    
-# Wait indefinitely so the script doesn't exit
-wait
+GETH_PID=$!
+
+# Wait for geth; the SIGTERM trap waits for geth to exit cleanly
+wait "$GETH_PID"
