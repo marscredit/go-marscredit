@@ -233,6 +233,12 @@ func gatherForks(config *params.ChainConfig) []uint64 {
 			forks = append(forks, rule.Uint64())
 		}
 	}
+	// Mars Credit: the fast-block fork is keyed by chain ID in code, not stored
+	// in the chain config, so add it explicitly. This makes upgraded nodes
+	// advertise it as FORK_NEXT and drop stale peers once it has passed.
+	if config.IsMarsChain() {
+		forks = append(forks, params.MarsFastForkBlock.Uint64())
+	}
 	// Sort the fork block numbers to permit chronological XOR
 	for i := 0; i < len(forks); i++ {
 		for j := i + 1; j < len(forks); j++ {

@@ -128,6 +128,10 @@ func (ethash *Ethash) VerifyHeaders(chain consensus.ChainHeaderReader, headers [
 		return abort, results
 	}
 
+	// Mars: LWMA needs ancestors that may still be inside this batch.
+	if chain.Config().IsMarsFast(headers[len(headers)-1].Number) {
+		chain = newMarsBatchReader(chain, headers)
+	}
 	// Spawn as many workers as allowed threads
 	workers := runtime.GOMAXPROCS(0)
 	if len(headers) < workers {
@@ -267,7 +271,7 @@ func (ethash *Ethash) verifyHeader(chain consensus.ChainHeaderReader, header, pa
 	}
 	// Verify the header's timestamp
 	if !uncle {
-		if header.Time > uint64(unixNow+allowedFutureBlockTimeSeconds) {
+		if header.Time > uint64(unixNow+allowedFutureSeconds(chain.Config(), header.Number)) {
 			return consensus.ErrFutureBlock
 		}
 	}
@@ -276,7 +280,9 @@ func (ethash *Ethash) verifyHeader(chain consensus.ChainHeaderReader, header, pa
 	}
 	// Verify the block's difficulty based on its timestamp and parent's difficulty
 	expected := ethash.CalcDifficulty(chain, header.Time, parent)
-
+	if expected == nil {
+		return errMarsMissingAncestor
+	}
 	if expected.Cmp(header.Difficulty) != 0 {
 		return fmt.Errorf("invalid difficulty: have %v, want %v", header.Difficulty, expected)
 	}
@@ -324,7 +330,17 @@ func (ethash *Ethash) verifyHeader(chain consensus.ChainHeaderReader, header, pa
 // CalcDifficulty is the difficulty adjustment algorithm. It returns
 // the difficulty that a new block should have when created at time
 // given the parent block's time and difficulty.
+//
+// Mars Credit: after params.MarsFastForkBlock on chain 110110 this is LWMA-1
+// (see CalcDifficultyMars) and returns nil if ancestors are missing.
 func (ethash *Ethash) CalcDifficulty(chain consensus.ChainHeaderReader, time uint64, parent *types.Header) *big.Int {
+	if chain.Config().IsMarsFast(new(big.Int).Add(parent.Number, big1)) {
+		d, err := CalcDifficultyMars(chain, parent)
+		if err != nil {
+			return nil
+		}
+		return d
+	}
 	return CalcDifficulty(chain.Config(), time, parent)
 }
 
@@ -585,6 +601,9 @@ func (ethash *Ethash) Prepare(chain consensus.ChainHeaderReader, header *types.H
 		return consensus.ErrUnknownAncestor
 	}
 	header.Difficulty = ethash.CalcDifficulty(chain, header.Time, parent)
+	if header.Difficulty == nil {
+		return errMarsMissingAncestor
+	}
 	return nil
 }
 

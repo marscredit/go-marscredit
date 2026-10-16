@@ -183,6 +183,11 @@ type intervalAdjust struct {
 // worker is the main object which takes care of submitting new work to consensus engine
 // and gathering the sealing result.
 type worker struct {
+	// Mars: wall-clock time each recent chain head was imported locally, used
+	// to hold sealing until MarsMinerMinGapMillis after the parent arrived.
+	marsHeadMu   sync.Mutex
+	marsHeadSeen map[common.Hash]time.Time
+
 	config      *Config
 	chainConfig *params.ChainConfig
 	engine      consensus.Engine
@@ -459,6 +464,7 @@ func (w *worker) newWorkLoop(recommit time.Duration) {
 			commit(false, commitInterruptNewHead)
 
 		case head := <-w.chainHeadCh:
+			w.marsNoteHead(head.Block.Hash())
 			clearPending(head.Block.NumberU64())
 			timestamp = time.Now().Unix()
 			commit(false, commitInterruptNewHead)
@@ -665,6 +671,27 @@ func (w *worker) taskLoop() {
 			w.pendingTasks[sealHash] = task
 			w.pendingMu.Unlock()
 
+			if wait := w.marsSealDelay(task.block); wait > 0 {
+				// Mars: hold sealing until >= 1 s after the parent was imported.
+				go func(block *types.Block, stop chan struct{}, sealHash common.Hash) {
+					t := time.NewTimer(wait)
+					defer t.Stop()
+					select {
+					case <-t.C:
+					case <-stop:
+						return
+					case <-w.exitCh:
+						return
+					}
+					if err := w.engine.Seal(w.chain, block, w.resultCh, stop); err != nil {
+						log.Warn("Block sealing failed", "err", err)
+						w.pendingMu.Lock()
+						delete(w.pendingTasks, sealHash)
+						w.pendingMu.Unlock()
+					}
+				}(task.block, stopCh, sealHash)
+				continue
+			}
 			if err := w.engine.Seal(w.chain, task.block, w.resultCh, stopCh); err != nil {
 				log.Warn("Block sealing failed", "err", err)
 				w.pendingMu.Lock()
@@ -1240,4 +1267,46 @@ func totalFees(block *types.Block, receipts []*types.Receipt) *big.Float {
 		feesWei.Add(feesWei, new(big.Int).Mul(new(big.Int).SetUint64(receipts[i].GasUsed), minerFee))
 	}
 	return new(big.Float).Quo(new(big.Float).SetInt(feesWei), new(big.Float).SetInt(big.NewInt(params.Ether)))
+}
+
+// marsNoteHead records when a new chain head was imported locally.
+func (w *worker) marsNoteHead(hash common.Hash) {
+	if !w.chainConfig.IsMarsChain() {
+		return
+	}
+	w.marsHeadMu.Lock()
+	defer w.marsHeadMu.Unlock()
+	if w.marsHeadSeen == nil {
+		w.marsHeadSeen = make(map[common.Hash]time.Time)
+	}
+	now := time.Now()
+	for h, t := range w.marsHeadSeen {
+		if now.Sub(t) > time.Minute {
+			delete(w.marsHeadSeen, h)
+		}
+	}
+	w.marsHeadSeen[hash] = now
+}
+
+// marsSealDelay returns how long to wait before sealing block so that it is
+// published no earlier than params.MarsMinerMinGapMillis after its parent was
+// imported. If the import time is unknown (e.g. right after startup), the
+// parent's timestamp is used as the arrival time. This is miner policy, not a
+// consensus rule.
+func (w *worker) marsSealDelay(block *types.Block) time.Duration {
+	if !w.chainConfig.IsMarsFast(block.Number()) {
+		return 0
+	}
+	gap := time.Duration(params.MarsMinerMinGapMillis) * time.Millisecond
+	w.marsHeadMu.Lock()
+	seen, ok := w.marsHeadSeen[block.ParentHash()]
+	w.marsHeadMu.Unlock()
+	if !ok {
+		parent := w.chain.GetHeader(block.ParentHash(), block.NumberU64()-1)
+		if parent == nil {
+			return 0
+		}
+		seen = time.Unix(int64(parent.Time), 0)
+	}
+	return time.Until(seen.Add(gap))
 }
