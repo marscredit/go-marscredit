@@ -1,18 +1,21 @@
 #!/bin/sh
 
-echo "Starting Node 3"
+echo "Starting Node 3 (node3-fast, mars-fast1)"
+
+NODE99_ENODE="enode://478d4dd8e56a6419d32a7f1166983566bf5c184d1fd97036bca04a2f8e5a6e7546492e38ebf16fbdb0c838c9d127ee70b5de6a7e1cdc5d337adc616f91baf98f@node99.railway.internal:30304"
+NODE2_ENODE="enode://ca3639067a580a0f1db7412aeeef6d5d5e93606ed7f236a5343fe0d1115fb8c2bea2a22fa86e9794b544f886a4cb0de1afcbccf60960802bf00d81dab9553ec9@node2.railway.internal:30304"
 
 # Function to handle shutdown
 shutdown() {
     echo "Shutting down Geth gracefully..."
-    pkill -SIGTERM geth
-    wait $!
+    kill -TERM "$GETH_PID" 2>/dev/null
+    wait "$GETH_PID"
     echo "Geth has been shut down."
     exit 0
 }
 
-# Trap SIGTERM signal (sent by Railway when stopping the container)
-trap shutdown SIGTERM
+# Trap SIGTERM/SIGINT (sent by Railway when stopping the container)
+trap shutdown TERM INT
 
 mkdir -p /app/geth/ethash
 mkdir -p /data/.ethash
@@ -29,14 +32,6 @@ ls -la /app
 echo "---- Logging contents of /data:"
 ls -la /data
 
-echo "Logging contents of /data/geth/chaindata (if exists):"
-if [ -d /data/geth/chaindata ]; then
-    ls -la /data/geth/chaindata
-else
-    echo "chaindata directory does not exist, creating now"
-    mkdir -p /data/geth/chaindata
-fi
-
 # Generate nodekey if not present
 echo "Checking for nodekey..."
 if [ ! -f "/app/nodekey3" ]; then
@@ -44,12 +39,6 @@ if [ ! -f "/app/nodekey3" ]; then
     bootnode -genkey /app/nodekey3
 else
     echo "nodekey3 file exists."
-fi
-
-# Log the contents of the nodekey
-echo "Logging contents of /app/nodekey3 (if exists):"
-if [ -f /app/nodekey3 ]; then
-    ls -la /app/nodekey3
 fi
 
 # Initialize Geth with the genesis file (only needed for first run)
@@ -60,32 +49,43 @@ else
     echo "Chaindata directory exists and is not empty."
 fi
 
+# Static peers: node99 and node2 over Railway private networking.
+# (The image's /data/static-nodes.json is hidden by the volume mount.)
+cat > /data/geth/static-nodes.json <<JSON
+[
+  "$NODE99_ENODE",
+  "$NODE2_ENODE"
+]
+JSON
+echo "Wrote /data/geth/static-nodes.json"
+
 # Wait for private networking to initialize
 sleep 10
 
-# Start Geth (mining OFF for recovery)
-echo "Starting Geth on node3 and enabling mining"
-exec geth --datadir /data \
+# Start Geth (mining OFF; public HTTP/WS limited to eth,net,web3; no account unlock)
+echo "Starting Geth on node3 (mining disabled)"
+geth --datadir /data \
     --syncmode "full" \
     --http \
     --http.addr "0.0.0.0" \
     --http.port 8546 \
-    --http.api personal,eth,net,web3,miner,admin \
+    --http.api eth,net,web3 \
     --http.vhosts=* \
     --http.corsdomain=* \
     --networkid 110110 \
     --ws \
     --ws.addr "0.0.0.0" \
     --ws.port 8546 \
+    --ws.api eth,net,web3 \
     --port 30304 \
     --nat "any" \
-    --miner.etherbase 0xD21602919e81e32A456195e9cE34215Af504535A \
-    --bootnodes "enode://bf93a274569cd009e4172c1a41b8bde1fb8d8e7cff1e5130707a0cf5be4ce0fc673c8a138ecb7705025ea4069da8c1d4b7ffc66e8666f7936aa432ce57693353@node2.railway.internal:30304" \
+    --bootnodes "$NODE99_ENODE,$NODE2_ENODE" \
     --verbosity 3 \
     --maxpeers 50 \
     --cache 2048 \
     --nodekey /app/nodekey3 \
     --ethash.dagdir /data/.ethash &
-    
-# Wait indefinitely so the script doesn't exit
-wait
+GETH_PID=$!
+
+# Wait for geth; the TERM/INT trap waits for geth to exit cleanly
+wait "$GETH_PID"

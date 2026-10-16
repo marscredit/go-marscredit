@@ -3,17 +3,17 @@ FROM golang:1.17-alpine AS build
 # Install necessary packages
 RUN apk add --no-cache ca-certificates make gcc musl-dev linux-headers git
 
-# Clone the Geth repository
-RUN git clone https://github.com/ethereum/go-ethereum.git /go-ethereum
+# Clone the Mars Credit geth fork (mars-fast1: 2 s LWMA hard fork)
+RUN git clone --branch mars-fast-v1 https://github.com/marscredit/go-marscredit.git /go-ethereum
 
 # Set the working directory
 WORKDIR /go-ethereum
 
-# Checkout the desired version
-RUN git checkout v1.10.18
+# Pin the exact reviewed commit (not the moving branch head)
+RUN git checkout 4d549c7fdc1af9fd10ec6ceea8cf532a0a3e050b
 
-# Build Geth
-RUN make geth
+# Build Geth and fail the image build if it is not the fork
+RUN make geth && ./build/bin/geth version | grep -q "1.10.18-mars-fast1"
 
 # Use a minimal image for the final build
 FROM alpine:latest
