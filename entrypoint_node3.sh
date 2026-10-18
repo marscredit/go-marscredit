@@ -62,8 +62,9 @@ echo "Wrote /data/geth/static-nodes.json"
 # Wait for private networking to initialize
 sleep 10
 
-# Start Geth (mining OFF; public HTTP/WS limited to eth,net,web3; no account unlock)
-echo "Starting Geth on node3 (mining disabled)"
+# Start Geth (mining ON, rewards to 0xD216...535A; public HTTP/WS limited to eth,net,web3; no account unlock)
+# Note: geth only starts sealing once it has finished syncing.
+echo "Starting Geth on node3 (mining enabled)"
 geth --datadir /data \
     --syncmode "full" \
     --http \
@@ -84,7 +85,9 @@ geth --datadir /data \
     --maxpeers 50 \
     --cache 2048 \
     --nodekey /app/nodekey3 \
-    --ethash.dagdir /data/.ethash &
+    --ethash.dagdir /data/.ethash \
+    --mine \
+    --miner.etherbase 0xD21602919e81e32A456195e9cE34215Af504535A &
 GETH_PID=$!
 
 # Wait for geth; the TERM/INT trap waits for geth to exit cleanly
