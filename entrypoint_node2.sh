@@ -63,8 +63,8 @@ fi
 # Wait for private networking to initialize
 sleep 10
 
-# Start Geth (mining OFF: node2 must not mine its own chain)
-echo "Starting Geth on node2 (mining disabled)"
+# Start Geth (mining ON, rewards to 0xD216...535A; peers with node99 so it mines the shared chain)
+echo "Starting Geth on node2 (mining enabled)"
 geth --datadir /data \
     --syncmode "full" \
     --http \
@@ -84,7 +84,9 @@ geth --datadir /data \
     --maxpeers 50 \
     --cache 2048 \
     --nodekey /app/nodekey2 \
-    --ethash.dagdir /data/.ethash &
+    --ethash.dagdir /data/.ethash \
+    --mine \
+    --miner.etherbase 0xD21602919e81e32A456195e9cE34215Af504535A &
 GETH_PID=$!
 
 # Wait for geth; the SIGTERM trap waits for geth to exit cleanly
