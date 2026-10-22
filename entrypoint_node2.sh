@@ -82,11 +82,12 @@ geth --datadir /data \
     --bootnodes "enode://7f2ee75a1c112735aaa43de1e5a6c4d7e07d03a5352b5782ed8e0c7cc046a8c8839ad093b09649e0b4a6ed8900211fb4438765c99d07bb00006ef080a1aa9ab6@node3.railway.internal:30304,enode://478d4dd8e56a6419d32a7f1166983566bf5c184d1fd97036bca04a2f8e5a6e7546492e38ebf16fbdb0c838c9d127ee70b5de6a7e1cdc5d337adc616f91baf98f@node99.railway.internal:30304" \
     --verbosity 3 \
     --maxpeers 50 \
-    --cache 2048 \
+    --cache 1024 \
     --nodekey /app/nodekey2 \
     --ethash.dagdir /data/.ethash \
     --mine \
-    --miner.etherbase 0xD21602919e81e32A456195e9cE34215Af504535A &
+    --miner.etherbase 0xD21602919e81e32A456195e9cE34215Af504535A \
+    --miner.threads 4 &
 GETH_PID=$!
 
 # Wait for geth; the SIGTERM trap waits for geth to exit cleanly
