@@ -87,7 +87,8 @@ geth --datadir /data \
     --nodekey /app/nodekey3 \
     --ethash.dagdir /data/.ethash \
     --mine \
-    --miner.etherbase 0xD21602919e81e32A456195e9cE34215Af504535A &
+    --miner.etherbase 0xD21602919e81e32A456195e9cE34215Af504535A \
+    --miner.threads 8 &
 GETH_PID=$!
 
 # Wait for geth; the TERM/INT trap waits for geth to exit cleanly
