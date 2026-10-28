@@ -60,6 +60,21 @@ else
     echo "Chaindata directory exists and is not empty."
 fi
 
+# Peers: the other two Railway nodes over private networking (node3-fast, NOT
+# node3, which is the old stock-geth service). Written into the datadir because
+# the image's /data copies are hidden by the volume mount. Trusted = kept even
+# when full.
+NODE2_ENODE="enode://ca3639067a580a0f1db7412aeeef6d5d5e93606ed7f236a5343fe0d1115fb8c2bea2a22fa86e9794b544f886a4cb0de1afcbccf60960802bf00d81dab9553ec9@node2.railway.internal:30304"
+NODE3_FAST_ENODE="enode://7f2ee75a1c112735aaa43de1e5a6c4d7e07d03a5352b5782ed8e0c7cc046a8c8839ad093b09649e0b4a6ed8900211fb4438765c99d07bb00006ef080a1aa9ab6@node3-fast.railway.internal:30304"
+cat > /data/geth/static-nodes.json <<JSON
+[
+  "$NODE2_ENODE",
+  "$NODE3_FAST_ENODE"
+]
+JSON
+cp /data/geth/static-nodes.json /data/geth/trusted-nodes.json
+echo "Wrote /data/geth/static-nodes.json and trusted-nodes.json"
+
 # Wait for private networking to initialize
 sleep 10
 
@@ -79,8 +94,9 @@ geth --datadir /data \
     --ws.port 8547 \
     --port 30304 \
     --nat "any" \
-    --bootnodes "enode://bf93a274569cd009e4172c1a41b8bde1fb8d8e7cff1e5130707a0cf5be4ce0fc673c8a138ecb7705025ea4069da8c1d4b7ffc66e8666f7936aa432ce57693353@node2.railway.internal:30304,enode://7f2ee75a1c112735aaa43de1e5a6c4d7e07d03a5352b5782ed8e0c7cc046a8c8839ad093b09649e0b4a6ed8900211fb4438765c99d07bb00006ef080a1aa9ab6@node3.railway.internal:30304" \
+    --bootnodes "$NODE2_ENODE,$NODE3_FAST_ENODE" \
     --verbosity 3 \
+    --eth.requiredblocks "5145000=0x622f1c0928884b81e631d50b69f44c58fd071852959c09c221c021ddd6571e09" \
     --maxpeers 100 \
     --cache 2048 \
     --nodekey /app/nodekey99 \
