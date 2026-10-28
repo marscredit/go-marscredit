@@ -2,8 +2,6 @@
 
 echo "Starting Node 3 (node3-fast, mars-fast1)"
 
-NODE99_ENODE="enode://478d4dd8e56a6419d32a7f1166983566bf5c184d1fd97036bca04a2f8e5a6e7546492e38ebf16fbdb0c838c9d127ee70b5de6a7e1cdc5d337adc616f91baf98f@node99.railway.internal:30304"
-NODE2_ENODE="enode://ca3639067a580a0f1db7412aeeef6d5d5e93606ed7f236a5343fe0d1115fb8c2bea2a22fa86e9794b544f886a4cb0de1afcbccf60960802bf00d81dab9553ec9@node2.railway.internal:30304"
 
 # Function to handle shutdown
 shutdown() {
@@ -49,15 +47,20 @@ else
     echo "Chaindata directory exists and is not empty."
 fi
 
-# Static peers: node99 and node2 over Railway private networking.
-# (The image's /data/static-nodes.json is hidden by the volume mount.)
+# Peers: the other two Railway nodes over private networking (node3-fast, NOT
+# node3, which is the old stock-geth service). Written into the datadir because
+# the image's /data copies are hidden by the volume mount. Trusted = kept even
+# when full.
+NODE99_ENODE="enode://478d4dd8e56a6419d32a7f1166983566bf5c184d1fd97036bca04a2f8e5a6e7546492e38ebf16fbdb0c838c9d127ee70b5de6a7e1cdc5d337adc616f91baf98f@node99.railway.internal:30304"
+NODE2_ENODE="enode://ca3639067a580a0f1db7412aeeef6d5d5e93606ed7f236a5343fe0d1115fb8c2bea2a22fa86e9794b544f886a4cb0de1afcbccf60960802bf00d81dab9553ec9@node2.railway.internal:30304"
 cat > /data/geth/static-nodes.json <<JSON
 [
   "$NODE99_ENODE",
   "$NODE2_ENODE"
 ]
 JSON
-echo "Wrote /data/geth/static-nodes.json"
+cp /data/geth/static-nodes.json /data/geth/trusted-nodes.json
+echo "Wrote /data/geth/static-nodes.json and trusted-nodes.json"
 
 # Wait for private networking to initialize
 sleep 10
@@ -82,6 +85,7 @@ geth --datadir /data \
     --nat "any" \
     --bootnodes "$NODE99_ENODE,$NODE2_ENODE" \
     --verbosity 3 \
+    --eth.requiredblocks "5145000=0x622f1c0928884b81e631d50b69f44c58fd071852959c09c221c021ddd6571e09" \
     --maxpeers 50 \
     --cache 2048 \
     --nodekey /app/nodekey3 \
