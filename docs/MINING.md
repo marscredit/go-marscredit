@@ -60,13 +60,14 @@ enode://8cebc25eafc49c5dad938794914f637f9a7b8a94992072f8556ed4fb172af30caf086b77
 
 ### Fork hash (`--eth.requiredblocks`)
 
-Pin block **5145000** so you cannot follow a split:
+Every running node must pin block **5145000** (and `--networkid 110110`) so it cannot follow a split:
 
 ```
---eth.requiredblocks 5145000=<full hash>
+--networkid 110110
+--eth.requiredblocks 5145000=0x622f1c0928884b81e631d50b69f44c58fd071852959c09c221c021ddd6571e09
 ```
 
-The canonical hash **starts with `0x622f` and ends with `6e09`**. Look it up (read-only; this is not a mining endpoint):
+That hash starts with `0x622f` and ends with `6e09`. Confirm it still matches (read-only; this is not a mining endpoint):
 
 ```shell
 curl -s -X POST https://rpc.marscredit.xyz \
@@ -75,7 +76,7 @@ curl -s -X POST https://rpc.marscredit.xyz \
 # or open https://blockscan.marscredit.xyz/block/5145000
 ```
 
-`0x4e81a8` is 5145000. Save the `hash` field and pass it to `--eth.requiredblocks`. If it does not start with `0x622f` and end with `6e09`, you are not looking at the canonical fork block.
+`0x4e81a8` is 5145000. If the public `hash` is not `0x622f1c0928884b81e631d50b69f44c58fd071852959c09c221c021ddd6571e09`, stop and do not mine.
 
 ## Linux CPU solo mining
 
@@ -102,12 +103,11 @@ cp static-nodes.json "$DATADIR/geth/static-nodes.json"
 
 geth --datadir "$DATADIR" init genesis.json
 
-# Replace <FORK_HASH> with the 0x622f…6e09 value from the lookup above.
 geth --datadir "$DATADIR" \
   --networkid 110110 \
   --syncmode full \
   --bootnodes "$BOOTNODES" \
-  --eth.requiredblocks "5145000=<FORK_HASH>" \
+  --eth.requiredblocks 5145000=0x622f1c0928884b81e631d50b69f44c58fd071852959c09c221c021ddd6571e09 \
   --mine \
   --miner.etherbase "$ETHERBASE" \
   --miner.threads "$THREADS" \
@@ -145,7 +145,7 @@ ExecStart=/usr/local/bin/geth \
   --networkid 110110 \
   --syncmode full \
   --bootnodes enode://dbbe3272e00e5151932c852607992cb34403c87ae84536272d70d1205e1b546cc1534c6b2e9442c263647e2a5796a70ab4d726621f1b9d030c7358eb5120173e@node1.marscredit.xyz:8541,enode://234ec10bb2441e306399e6d73a62a207ca9c3a5bfdf5a149af9cc998b1444ae86869f595cf1bd4afdb35810161f5966ede85b1a1e4df41fe8194d1091ab65bd8@node2.marscredit.xyz:8542,enode://8cebc25eafc49c5dad938794914f637f9a7b8a94992072f8556ed4fb172af30caf086b77e293ea5a6424f4485e1a9dec931b90986255707433b0135dd1d1d79b@node3.marscredit.xyz:8543,enode://bf93a274569cd009e4172c1a41b8bde1fb8d8e7cff1e5130707a0cf5be4ce0fc673c8a138ecb7705025ea4069da8c1d4b7ffc66e8666f7936aa432ce57693353@roundhouse.proxy.rlwy.net:50590,enode://ca3639067a580a0f1db7412aeeef6d5d5e93606ed7f236a5343fe0d1115fb8c2bea2a22fa86e9794b544f886a4cb0de1afcbccf60960802bf00d81dab9553ec9@monorail.proxy.rlwy.net:26254,enode://7f2ee75a1c112735aaa43de1e5a6c4d7e07d03a5352b5782ed8e0c7cc046a8c8839ad093b09649e0b4a6ed8900211fb4438765c99d07bb00006ef080a1aa9ab6@viaduct.proxy.rlwy.net:30270,enode://98710174f4798dae1931e417944ac7a7fb3268d38ef8d3941c8fcc44fe178b118003d8b3d61d85af39c561235a1708f8dd61f8ba47df4c4a6b9156e272af2cfc@monorail.proxy.rlwy.net:29138 \
-  --eth.requiredblocks 5145000=<FORK_HASH> \
+  --eth.requiredblocks 5145000=0x622f1c0928884b81e631d50b69f44c58fd071852959c09c221c021ddd6571e09 \
   --mine \
   --miner.etherbase 0xYourAddress \
   --miner.threads 4 \
@@ -179,7 +179,7 @@ geth --datadir "$DATADIR" \
   --networkid 110110 \
   --syncmode full \
   --bootnodes "$BOOTNODES" \
-  --eth.requiredblocks "5145000=<FORK_HASH>" \
+  --eth.requiredblocks 5145000=0x622f1c0928884b81e631d50b69f44c58fd071852959c09c221c021ddd6571e09 \
   --http --http.addr 127.0.0.1 --http.port 8545 --http.api eth,net,web3 \
   --mine --miner.threads 0 --miner.etherbase "$ETHERBASE" \
   --ethash.dagdir "$DAGDIR" \
@@ -202,7 +202,20 @@ Do not pass `--http.addr 0.0.0.0` “so HiveOS on another box can connect” unl
 
 **Untested** on HiveOS. Outline only:
 
-1. Install this `geth-linux-amd64` on the rig, init with `genesis.json`, copy `static-nodes.json`, and run the GPU geth command above under systemd (or a HiveOS custom service) so RPC is `http://127.0.0.1:8545`.
+1. Install this `geth-linux-amd64` on the rig, init with `genesis.json`, copy `static-nodes.json`, and run geth locally (systemd or a HiveOS custom service) with RPC on `http://127.0.0.1:8545`:
+
+```shell
+geth --datadir "$DATADIR" \
+  --networkid 110110 \
+  --syncmode full \
+  --bootnodes "$BOOTNODES" \
+  --eth.requiredblocks 5145000=0x622f1c0928884b81e631d50b69f44c58fd071852959c09c221c021ddd6571e09 \
+  --http --http.addr 127.0.0.1 --http.port 8545 --http.api eth,net,web3 \
+  --mine --miner.threads 0 --miner.etherbase "$ETHERBASE" \
+  --ethash.dagdir "$DAGDIR" \
+  --maxpeers 50 --cache 2048 --verbosity 3
+```
+
 2. HiveOS → miner → **custom miner**. Point the miner URL at `http://127.0.0.1:8545` (getWork), not a stratum `stratum+tcp://…` and not `rpc.marscredit.xyz`.
 3. Wallet / etherbase is geth's `--miner.etherbase`, not a pool username.
 
@@ -222,7 +235,7 @@ curl -s -X POST https://rpc.marscredit.xyz \
   -d '{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params":["0x4e81a8", false],"id":1}'
 ```
 
-Also check https://blockscan.marscredit.xyz/block/5145000 (and any later height you pick). Same number must have the same hash. If they differ, you are on a split — stop mining and resync from genesis with `--eth.requiredblocks` set.
+Also check https://blockscan.marscredit.xyz/block/5145000 (and any later height you pick). Block 5145000 must be `0x622f1c0928884b81e631d50b69f44c58fd071852959c09c221c021ddd6571e09`. If they differ, you are on a split — stop mining and resync from genesis with `--networkid 110110 --eth.requiredblocks 5145000=0x622f1c0928884b81e631d50b69f44c58fd071852959c09c221c021ddd6571e09`.
 
 While syncing, `admin.peers.length` should be > 0 and `eth.syncing` should show a rising `currentBlock`. After sync, `eth.blockNumber` should track the explorer within a few blocks.
 
