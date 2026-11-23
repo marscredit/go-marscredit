@@ -2,7 +2,7 @@
 # with Go source code. If you know what GOPATH is then you probably
 # don't need to bother with make.
 
-.PHONY: geth android ios evm all test clean
+.PHONY: geth android ios evm all test clean linux linux-amd64 linux-arm64 dist
 
 GOBIN = ./build/bin
 GO ?= latest
@@ -34,9 +34,22 @@ test: all
 lint: ## Run linters.
 	$(GORUN) build/ci.go lint
 
+# Reproducible Linux geth binaries (CGO disabled, same as MARS_FAST.md).
+#   make linux-amd64
+#   make linux-arm64
+#   make linux          # both + SHA256SUMS under dist/
+linux-amd64:
+	./scripts/build-linux.sh amd64
+
+linux-arm64:
+	./scripts/build-linux.sh arm64
+
+linux dist:
+	./scripts/build-linux.sh
+
 clean:
 	env GO111MODULE=on go clean -cache
-	rm -fr build/_workspace/pkg/ $(GOBIN)/*
+	rm -fr build/_workspace/pkg/ $(GOBIN)/* dist/
 
 # The devtools target installs tools required for 'go generate'.
 # You need to put $GOBIN (or $GOPATH/bin) in your PATH to use 'go generate'.

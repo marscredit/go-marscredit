@@ -1,6 +1,16 @@
+## Mars Credit (go-marscredit)
+
+Geth fork of [go-ethereum v1.10.18](https://github.com/ethereum/go-ethereum/releases/tag/v1.10.18) for the Mars Credit L1 (chain ID **110110**, Ethash PoW). This branch (`mars-fast-v1`) is **1.10.18-mars-fast1**: 2 second blocks and a 2 MARS reward from block 5,145,000.
+
+- **Linux miners:** [docs/MINING.md](docs/MINING.md) — solo CPU/GPU on your own node, Linux binaries, systemd. No pools, no public stratum, never mine against `rpc.marscredit.xyz`.
+- **Build Linux binaries:** `make linux-amd64` (or `make linux` for amd64+arm64). CI attaches them to a draft GitHub Release on tags matching `v*`.
+- **Pinned commit:** `4d549c7fdc1af9fd10ec6ceea8cf532a0a3e050b` (Railway nodes use the same pin). `geth version` must print `1.10.18-mars-fast1`.
+
+Mac and Windows miners can keep using the Mars Credit Miner app, which ships this geth.
+
 ## Go Ethereum
 
-Official Golang implementation of the Ethereum protocol.
+Official Golang implementation of the Ethereum protocol (upstream text below; Mars Credit mining is in [docs/MINING.md](docs/MINING.md)).
 
 [![API Reference](
 https://camo.githubusercontent.com/915b7be44ada53c290eb157634330494ebe3e30a/68747470733a2f2f676f646f632e6f72672f6769746875622e636f6d2f676f6c616e672f6764646f3f7374617475732e737667
@@ -9,18 +19,18 @@ https://camo.githubusercontent.com/915b7be44ada53c290eb157634330494ebe3e30a/6874
 [![Travis](https://travis-ci.com/ethereum/go-ethereum.svg?branch=master)](https://travis-ci.com/ethereum/go-ethereum)
 [![Discord](https://img.shields.io/badge/discord-join%20chat-blue.svg)](https://discord.gg/nthXNEv)
 
-Automated builds are available for stable releases and the unstable master branch. Binary
-archives are published at https://geth.ethereum.org/downloads/.
+Linux binaries for this fork are attached to a draft GitHub Release when a `v*` tag is pushed (workflow `.github/workflows/release-linux.yml`). Upstream Ethereum archives at https://geth.ethereum.org/downloads/ are **not** Mars Credit and must not be used to mine.
 
 ## Building the source
 
 For prerequisites and detailed build instructions please read the [Installation Instructions](https://geth.ethereum.org/docs/install-and-build/installing-geth).
 
-Building `geth` requires both a Go (version 1.16 or later) and a C compiler. You can install
-them using your favourite package manager. Once the dependencies are installed, run
+Building `geth` requires Go 1.16+ (1.17.x for the same pin as CI / Railway) and a C compiler for `make geth`. Linux miner binaries are built with `CGO_ENABLED=0`:
 
 ```shell
-make geth
+make linux-amd64    # dist/geth-linux-amd64
+make linux          # both arches + dist/SHA256SUMS
+make geth           # native build via build/ci.go
 ```
 
 or, to build the full suite of utilities:
