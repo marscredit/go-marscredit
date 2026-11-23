@@ -19,4 +19,6 @@ Tests: run `go test ./params ./consensus/ethash ./core/forkid ./miner -run Mars`
 
 `params/mars_devfork.go` is used only with `-tags marsdevfork`. It moves the fork to block 40 for local smoke tests. Never ship a binary built with that tag.
 
-Build: Go 1.17. Run `go build ./cmd/geth`, or `make geth`. Cross-builds use CGO_ENABLED=0 (pure-Go secp256k1).
+Build: Go 1.17. Run `go build ./cmd/geth`, or `make geth`. Cross-builds use CGO_ENABLED=0 (pure-Go secp256k1). Linux miner binaries: `make linux` / `./scripts/build-linux.sh`. Mining setup: [docs/MINING.md](docs/MINING.md).
+
+Railway node images pin geth source commit `4d549c7fdc1af9fd10ec6ceea8cf532a0a3e050b` (this branch HEAD at the time of the fork). `1c09a5a` is the ops HEAD of `trusted-nodes/railway-node3-fast`, not a geth commit.
