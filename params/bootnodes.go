@@ -19,12 +19,22 @@ package params
 import "github.com/ethereum/go-ethereum/common"
 
 // MainnetBootnodes are the enode URLs of the P2P bootstrap nodes running on
-// the main Mars Credit network (same list as origin/master; do not invent extra enodes).
+// the main Mars Credit network. Live list as of 2026-11-23 (same two public
+// peers as https://marscredit.xyz/start-mining). Do not invent extra enodes.
 var MainnetBootnodes = []string{
-	"enode://dbbe3272e00e5151932c852607992cb34403c87ae84536272d70d1205e1b546cc1534c6b2e9442c263647e2a5796a70ab4d726621f1b9d030c7358eb5120173e@node1.marscredit.xyz:8541", // node1
-	"enode://234ec10bb2441e306399e6d73a62a207ca9c3a5bfdf5a149af9cc998b1444ae86869f595cf1bd4afdb35810161f5966ede85b1a1e4df41fe8194d1091ab65bd8@node2.marscredit.xyz:8542", // node2
-	"enode://8cebc25eafc49c5dad938794914f637f9a7b8a94992072f8556ed4fb172af30caf086b77e293ea5a6424f4485e1a9dec931b90986255707433b0135dd1d1d79b@node3.marscredit.xyz:8543", // node3
+	"enode://ca3639067a580a0f1db7412aeeef6d5d5e93606ed7f236a5343fe0d1115fb8c2bea2a22fa86e9794b544f886a4cb0de1afcbccf60960802bf00d81dab9553ec9@roundhouse.proxy.rlwy.net:26254",
+	"enode://478d4dd8e56a6419d32a7f1166983566bf5c184d1fd97036bca04a2f8e5a6e7546492e38ebf16fbdb0c838c9d127ee70b5de6a7e1cdc5d337adc616f91baf98f@interchange.proxy.rlwy.net:42747",
 }
+
+// Not live as of 2026-11-23 (left commented so miners do not dial them):
+//   node1.marscredit.xyz:8541 / node2.marscredit.xyz:8542 / node3.marscredit.xyz:8543 — no DNS
+//   enode://dbbe3272e00e5151932c852607992cb34403c87ae84536272d70d1205e1b546cc1534c6b2e9442c263647e2a5796a70ab4d726621f1b9d030c7358eb5120173e@node1.marscredit.xyz:8541
+//   enode://234ec10bb2441e306399e6d73a62a207ca9c3a5bfdf5a149af9cc998b1444ae86869f595cf1bd4afdb35810161f5966ede85b1a1e4df41fe8194d1091ab65bd8@node2.marscredit.xyz:8542
+//   enode://8cebc25eafc49c5dad938794914f637f9a7b8a94992072f8556ed4fb172af30caf086b77e293ea5a6424f4485e1a9dec931b90986255707433b0135dd1d1d79b@node3.marscredit.xyz:8543
+//   enode://bf93a274569cd009e4172c1a41b8bde1fb8d8e7cff1e5130707a0cf5be4ce0fc673c8a138ecb7705025ea4069da8c1d4b7ffc66e8666f7936aa432ce57693353@roundhouse.proxy.rlwy.net:50590
+//   enode://ca3639067a580a0f1db7412aeeef6d5d5e93606ed7f236a5343fe0d1115fb8c2bea2a22fa86e9794b544f886a4cb0de1afcbccf60960802bf00d81dab9553ec9@monorail.proxy.rlwy.net:26254 // wrong host
+//   enode://7f2ee75a1c112735aaa43de1e5a6c4d7e07d03a5352b5782ed8e0c7cc046a8c8839ad093b09649e0b4a6ed8900211fb4438765c99d07bb00006ef080a1aa9ab6@viaduct.proxy.rlwy.net:30270
+//   enode://98710174f4798dae1931e417944ac7a7fb3268d38ef8d3941c8fcc44fe178b118003d8b3d61d85af39c561235a1708f8dd61f8ba47df4c4a6b9156e272af2cfc@monorail.proxy.rlwy.net:29138
 
 // RopstenBootnodes are the enode URLs of the P2P bootstrap nodes running on the
 // Ropsten test network.
